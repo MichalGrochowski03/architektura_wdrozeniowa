@@ -1,0 +1,28 @@
+#240095
+#Grochowski Michal
+
+- name: Instalacja redeis-server
+  hosts: app_servers
+  become: yes
+
+  tasks:
+    - name: Krok 1 - Instalacja Redis
+      apt: 
+        name: redis-server
+        state: present
+        update_cache: yes
+      
+    - name: Krok 2 - uruchomienie redis
+      service:
+        name: redis-server
+        state: started
+        enabled: yes
+   
+    - name: Krok 3 - Sprawdzenie wersji Redis
+      command: redis-server --version
+      register: redis_version
+      changed_when: false
+
+    - name: Krok 4 - Wyświetlenie wersji Redis
+      debug:
+       msg: "{{ redis_version.stdout }}"

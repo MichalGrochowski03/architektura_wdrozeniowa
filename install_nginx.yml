@@ -1,0 +1,28 @@
+#240095
+#Grochowski Michal
+
+- name: Instalacja Nginx
+  hosts: app_servers
+  become: yes
+
+  tasks:
+    - name: Krok 1 - Instalacja Nginx
+      apt: 
+        name: nginx
+        state: present
+        update_cache: yes
+      
+    - name: Krok 2 - uruchomienie Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+   
+    - name: Krok 3 - Sprawdzenie wersji Nginx
+      command: nginx -v
+      register: nginx_version
+      changed_when: false
+
+    - name: Krok 4 - Wyświetlenie wersji Nginx
+      debug:
+       msg: "{{ nginx_version.stderr }}"

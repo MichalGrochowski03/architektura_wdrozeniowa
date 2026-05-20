@@ -1,0 +1,38 @@
+- name: Konfiguracja środowiska dla programisty (Node.js i .NET)
+  hosts: app_servers
+  become: yes
+  
+  tasks:
+    - name: Krok 1 - Pobranie konfiguracji repozytorium Microsoft (dla Ubuntu 22.04)
+      get_url:
+        url: https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+
+    - name: Krok 4 - Pobranie oficjalnego skryptu instalacyjnego .NET
+      get_url:
+        url: https://dot.net/v1/dotnet-install.sh
+        dest: /tmp/dotnet-install.sh
+        mode: '0755'
+
+    - name: Krok 5 - Uruchomienie skryptu i instalacja .NET 10
+      command: /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
+      args:
+        creates: /usr/share/dotnet/dotnet
+
+- name: Konfiguracja środowiska dla aplikacji
+  hosts: app_servers
+  become: yes
+  
+  tasks:
+    - name: Instalacja niezbędnych środowisk uruchomieniowych
+      apt:
+        name:
+          - apt-transport-https
+          - nodejs
+          - npm
+          - redis-server
+          - rabbitmq-server
+          - postgresql
+          - postgresql-contrib
+        state: present
+        update_cache: yes

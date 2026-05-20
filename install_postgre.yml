@@ -1,0 +1,30 @@
+#240095
+#Grochowski Michal
+
+- name: Instalacja Postgresql
+  hosts: app_servers
+  become: yes
+
+  tasks:
+    - name: Krok 1 - Instalacja postgresql
+      apt: 
+        name:
+          - postgresql
+          - postgresql-contrib
+        state: present
+        update_cache: yes
+      
+    - name: Krok 2 - uruchomienie postgresql
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+   
+    - name: Krok 3 - Sprawdzenie wersji postgresql
+      command: psql --version
+      register: psql_version
+      changed_when: false
+
+    - name: Krok 4 - Wyświetlenie wersji postgresql
+      debug:
+       msg: "{{ psql_version.stdout }}"

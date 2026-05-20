@@ -1,0 +1,29 @@
+#240095
+#Grochowski Michal
+
+- name: Instalacja RabbitMQ
+  hosts: app_servers
+  become: yes
+
+  tasks:
+    - name: Krok 1 - Instalacja RabbitMQ
+      apt: 
+        name:
+          - rabbitmq-server
+        state: present
+        update_cache: yes
+      
+    - name: Krok 2 - uruchomienie RabbitMQ
+      service:
+        name: rabbitmq-server
+        state: started
+        enabled: yes
+   
+    - name: Krok 3 - Sprawdzenie wersji RabbitMQ
+      command: rabbitmqctl version
+      register: rabbitmq_version
+      changed_when: false
+
+    - name: Krok 4 - Wyświetlenie wersji RabbitMQ
+      debug:
+       msg: "{{ rabbitmq_version.stdout }}"

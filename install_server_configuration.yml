@@ -1,0 +1,115 @@
+#240095
+#Michal Grochowski
+
+
+- name: Konfiguracja środowiska
+  hosts: app_servers
+  become: yes
+  
+  tasks:
+    - name: Krok 1 - Pobranie konfiguracji repozytorium Microsoft (dla Ubuntu 22.04)
+      get_url:
+        url: https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+
+    - name: Krok 4 - Pobranie oficjalnego skryptu instalacyjnego .NET
+      get_url:
+        url: https://dot.net/v1/dotnet-install.sh
+        dest: /tmp/dotnet-install.sh
+        mode: '0755'
+ 
+    - name: Krok 4,5 - Utworzenie linku dla dotneta
+      file:
+        src: /usr/share/dotnet/dotnet
+        dest: /usr/bin/dotnet
+        state: link
+
+
+    - name: Krok 5 - Uruchomienie skryptu i instalacja .NET 10
+      command: /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
+      args:
+        creates: /usr/share/dotnet/dotnet
+
+    - name: Krok 6 -Zainstaluj pakiet git przy użyciu menedżera APT
+      apt:
+        name: git
+        state: present
+
+    - name: Krok 7 - Instalacja niezbędnych środowisk uruchomieniowych
+      apt:
+        name:
+          - apt-transport-https
+          - nodejs
+          - npm
+          - redis-server
+          - rabbitmq-server
+          - postgresql
+          - postgresql-contrib
+          - nginx
+        state: present
+        update_cache: yes
+
+    - name: Krok 8 - Uruchomienie Redis
+      service:
+        name: redis-server
+        state: started
+        enabled: yes
+
+    - name: Krok 9 - Uruchomienie RabbitMQ
+      service:
+        name: rabbitmq-server
+        state: started
+        enabled: yes
+
+    - name: Krok 10 - Uruchomienie Posgresql
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Krok 11 - Uruchomienie Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Krok 12 - Sprawdzenie wersji Git
+      command: git --version
+      register: git_version
+      changed_when: false
+
+    - name: Krok 13 - Sprawdzenie wersji Redis
+      command: redis-server --version
+      register: redis_version
+      changed_when: false
+
+    - name: Krok 14 - Sprawdzenie wersji RabbitMQ
+      command: rabbitmqctl version
+      register: rabbitmq_version
+      changed_when: false
+
+    - name: Krok 15 - Sprawdzenie wersji PostgreSQL
+      command: psql --version
+      register: postgresql_version
+      changed_when: false
+
+    - name: Krok 16 - Sprawdzenie wersji .NET
+      command: dotnet --version
+      register: dotnet_version
+      changed_when: false
+
+    - name: Krok 17 - Sprawdzenie wersji Nginx
+      command: nginx -v
+      register: nginx_version
+      changed_when: false
+      failed_when: false
+
+    - name: Krok 18 - Wyświetlenie wersji komponentów
+      debug:
+        msg:
+          - "{{ git_version.stdout }}"
+          - "{{ redis_version.stdout }}"
+          - "RabbitMQ: {{ rabbitmq_version.stdout }}"
+          - "{{ postgresql_version.stdout }}"
+          - ".NET: {{ dotnet_version.stdout }}"
+          - "Nginx: {{ nginx_version.stderr }}"

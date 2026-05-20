@@ -1,0 +1,9 @@
+- name: Instalacja narzędzia Git
+  hosts: app_servers
+  become: yes
+  
+  tasks:
+    - name: Zainstaluj pakiet git przy użyciu menedżera APT
+      apt:
+        name: git
+        state: present
