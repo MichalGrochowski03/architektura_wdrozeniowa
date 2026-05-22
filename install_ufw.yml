@@ -1,0 +1,71 @@
+#240095
+#Grochowski Michał
+
+- name: Konfiguracja UFW
+  hosts: app_servers
+  become: yes
+
+  tasks:
+    - name: Krok 1 - Instalacja UFW
+      apt:
+        name: ufw
+        state: present
+        update_cache: yes
+
+    - name: Krok 2 - Zezwól na SSH
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Krok 3 - Zezwól na HTTP
+      community.general.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Krok 4 - Zezwól na backend 5000
+      community.general.ufw:
+        rule: allow
+        port: '5000'
+        proto: tcp
+
+    - name: Krok 5 - Włącz UFW
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+
+- name: Konfiguracja UFW na serwerze bazodanowym
+  hosts: db_servers
+  become: yes
+
+  vars:
+    app_server_ip: "{{ hostvars[groups['app_servers'][0]]['ansible_host'] }}"
+
+  tasks:
+    - name: Krok 1 - Instalacja UFW
+      apt:
+        name: ufw
+        state: present
+        update_cache: yes
+
+    - name: Krok 2 - Zezwól na SSH
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Krok 3 - Zezwól na PostgreSQL tylko z serwera aplikacji
+      community.general.ufw:
+        rule: allow
+        port: '5432'
+        proto: tcp
+        from_ip: "{{ app_server_ip }}"
+
+    - name: Krok 4 - Włącz UFW
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming

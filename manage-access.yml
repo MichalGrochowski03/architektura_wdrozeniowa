@@ -1,0 +1,47 @@
+- name: Konfiguracja bezpiecznego dostępu do usług
+  hosts: app_servers
+  become: yes
+  vars_files:
+    - secrets.yml # Wczytujemy nasz zaszyfrowany plik
+
+  tasks:
+    - name: Krok 0 - Instalacja pakietu ACL (niezbędne do zmiany użytkownika)
+      apt:
+        name: acl
+        state: present
+
+    - name: Krok 1 - Instalacja sterownika Python dla PostgreSQL
+      apt:
+        name: python3-psycopg2
+        state: present
+
+    - name: Krok 2 - Utworzenie użytkownika bazy danych
+      community.postgresql.postgresql_user:
+        name: "{{ vault_db_user }}"
+        password: "{{ vault_db_password }}"
+        role_attr_flags: "NOSUPERUSER,CREATEDB"
+      become_user: postgres
+      
+    - name: Krok 3 - Utworzenie bazy danych
+      community.postgresql.postgresql_db:
+        name: "{{ vault_db_name }}"
+        owner: "{{ vault_db_user }}"
+      become_user: postgres
+      
+    # --- REDIS ---    
+    - name: RABBITMQ | Dodanie administratora z Vault
+      community.rabbitmq.rabbitmq_user:
+        user: "{{ vault_rabbit_user }}"
+        password: "{{ vault_rabbit_password }}"
+        tags: administrator
+        permissions:
+          - vhost: /
+            configure_priv: .*
+            write_priv: .*
+            read_priv: .*
+        state: present
+
+
+  handlers:
+    - name: Restart Redis
+      service: { name: redis-server, state: restarted }

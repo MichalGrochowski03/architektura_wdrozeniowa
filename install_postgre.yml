@@ -2,7 +2,7 @@
 #Grochowski Michal
 
 - name: Instalacja Postgresql
-  hosts: app_servers
+  hosts: db_servers
   become: yes
 
   tasks:
@@ -28,3 +28,4 @@
     - name: Krok 4 - Wyświetlenie wersji postgresql
       debug:
        msg: "{{ psql_version.stdout }}"
+

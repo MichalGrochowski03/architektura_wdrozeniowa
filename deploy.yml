@@ -42,7 +42,7 @@
       
           # Podstawowe zmienne środowiskowe
           Environment="ASPNETCORE_ENVIRONMENT=Production"
-          Environment="ASPNETCORE_URLS=http://localhost:5000"
+          Environment="ASPNETCORE_URLS=http://0.0.0.0:5000"
 
           # -----------------------------------------------------
           # WSTRZYKIWANIE DANYCH Z ANSIBLE VAULT
@@ -50,7 +50,7 @@
           # -----------------------------------------------------
           
           # POSTGRES (Format ADO.NET)
-          Environment="ConnectionStrings__Postgres=Host=localhost;Database={{ vault_db_name }};Username={{ vault_db_user }};Password={{ vault_db_password }}"
+          Environment="ConnectionStrings__Postgres=Host={{ vault_db_host }};Database={{ vault_db_name }};Username={{ vault_db_user }};Password={{ vault_db_password }}"
           
           # REDIS (Format StackExchange.Redis)
           Environment="ConnectionStrings__Redis=localhost,password={{ vault_redis_password }}"

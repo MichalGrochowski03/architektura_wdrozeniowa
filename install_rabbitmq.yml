@@ -27,3 +27,4 @@
     - name: Krok 4 - Wyświetlenie wersji RabbitMQ
       debug:
        msg: "{{ rabbitmq_version.stdout }}"
+

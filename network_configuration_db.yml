@@ -1,0 +1,47 @@
+
+- name: Konfiguracja sieciowa i firewall dla bazy danych
+  hosts: db_servers
+  become: yes
+  vars:
+    # IP Twojego serwera aplikacyjnego (pobierane z grupy app_servers)
+    app_server_ip: "{{ hostvars[groups['app_servers'][0]]['ansible_host'] }}"
+  tasks:   
+    - name: DB | Pozwól Postgresowi słuchać na wszystkich interfejsach
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf # Sprawdź wersję (np. 14, 15, 16)
+        regexp: "^#?listen_addresses ="
+        line: "listen_addresses = '*'"
+      notify: Restart Postgres
+
+    - name: DB | Dodaj wpis do pg_hba.conf pozwalający na logowanie z IP aplikacji
+      lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        line: "host all all {{ app_server_ip }}/32 md5"
+      notify: Restart Postgres
+
+    # --- KONFIGURACJA FIREWALLA (UFW) ---
+
+    - name: UFW | Pozwól na ruch SSH (ABY NIE STRACIĆ DOSTĘPU!)
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: UFW | Pozwól na dostęp do Postgresa (5432) TYLKO z serwera aplikacji
+      community.general.ufw:
+        rule: allow
+        port: '5432'
+        proto: tcp
+        from_ip: "{{ app_server_ip }}"
+
+    - name: UFW | Włącz firewall i ustaw domyślne blokowanie ruchu przychodzącego
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+  handlers:
+    - name: Restart Postgres
+      service:
+        name: postgresql
+        state: restarted

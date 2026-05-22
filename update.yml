@@ -1,0 +1,12 @@
+- name: Pierwsza automatyzacja - aktualizacja systemu
+  hosts: all
+  become: yes # Oznacza w Ansible: "użyj uprawnień sudo"
+  
+  tasks:
+    - name: Krok 1 - Odświeżenie listy dostępnych pakietów (odpowiednik apt update)
+      apt:
+        update_cache: yes
+
+    - name: Krok 2 - Instalacja najnowszych wersji oprogramowania (odpowiednik apt upgrade)
+      apt:
+        upgrade: yes

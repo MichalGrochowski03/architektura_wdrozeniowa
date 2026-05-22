@@ -1,0 +1,4 @@
+- import_playbook: update.yml
+- import_playbook: install_git.yml
+- import_playbook: install_dev_tools.yml
+- import_playbook: install_minio.yml

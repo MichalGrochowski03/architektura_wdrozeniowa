@@ -1,28 +1,42 @@
 #240095
 #Grochowski Michal
 
-- name: Instalacja Nginx
-  hosts: app_servers
+- name: Wdrożenie dynamicznej konfiguracji Nginx
+  hosts: app_servers   # Instalujemy na serwerach WWW/App, a nie na bazie!
   become: yes
-
+  
   tasks:
-    - name: Krok 1 - Instalacja Nginx
-      apt: 
+    - name: Krok 1 - Instalacja serwera Nginx
+      apt:
         name: nginx
         state: present
         update_cache: yes
-      
-    - name: Krok 2 - uruchomienie Nginx
+
+    - name: Krok 2 - Renderowanie i kopiowanie szablonu konfiguracji
+      template:
+        src: templates/my_app.conf.j2
+        dest: /etc/nginx/sites-available/my_app
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload Nginx
+
+    - name: Krok 3 - Aktywacja konfiguracji (tworzenie linku symbolicznego)
+      file:
+        src: /etc/nginx/sites-available/my_app
+        dest: /etc/nginx/sites-enabled/my_app
+        state: link
+      notify: Reload Nginx
+
+    - name: Krok 4 - Usunięcie domyślnej strony powitalnej Nginx
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+  handlers:
+    - name: Reload Nginx
       service:
         name: nginx
-        state: started
+        state: reloaded  # 'reloaded' jest lepsze niż 'restarted' - nie przerywa trwających połączeń!
         enabled: yes
-   
-    - name: Krok 3 - Sprawdzenie wersji Nginx
-      command: nginx -v
-      register: nginx_version
-      changed_when: false
-
-    - name: Krok 4 - Wyświetlenie wersji Nginx
-      debug:
-       msg: "{{ nginx_version.stderr }}"
