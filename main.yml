@@ -1,4 +1,13 @@
 - import_playbook: update.yml
-- import_playbook: install_git.yml
 - import_playbook: install_dev_tools.yml
+- import_playbook: install_git.yml
+- import_playbook: install_postgre.yml
+- import_playbook: network_configuration_db.yml
+- import_playbook: manage-access.yml
+- import_playbook: install_redis.yml
+- import_playbook: install_rabbitmq.yml
 - import_playbook: install_minio.yml
+- import_playbook: install_nginx.yml
+- import_playbook: install_ufw.yml
+- import_playbook: deploy.yml
+

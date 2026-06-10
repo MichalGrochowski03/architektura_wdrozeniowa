@@ -50,8 +50,7 @@
           # -----------------------------------------------------
           
           # POSTGRES (Format ADO.NET)
-          Environment="ConnectionStrings__Postgres=Host={{ vault_db_host }};Database={{ vault_db_name }};Username={{ vault_db_user }};Password={{ vault_db_password }}"
-          
+          Environment="ConnectionStrings__Postgres=Host={{ hostvars[groups['db_servers'][0]]['ansible_host'] }};Database={{ vault_db_name }};Username={{ vault_db_user }};Password={{ vault_db_password }}"          
           # REDIS (Format StackExchange.Redis)
           Environment="ConnectionStrings__Redis=localhost,password={{ vault_redis_password }}"
           

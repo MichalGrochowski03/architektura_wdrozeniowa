@@ -30,7 +30,13 @@
         port: '5000'
         proto: tcp
 
-    - name: Krok 5 - Włącz UFW
+    - name: Krok 5 - Zezwól na minio 9000
+      community.general.ufw:
+        rule: allow
+        port: '9000'
+        proto: tcp
+
+    - name: Krok 6 - Włącz UFW
       community.general.ufw:
         state: enabled
         policy: deny

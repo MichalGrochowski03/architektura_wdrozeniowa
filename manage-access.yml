@@ -2,7 +2,8 @@
   hosts: app_servers
   become: yes
   vars_files:
-    - secrets.yml # Wczytujemy nasz zaszyfrowany plik
+    - secrets.yml 
+# Wczytujemy nasz zaszyfrowany plik
 
   tasks:
     - name: Krok 0 - Instalacja pakietu ACL (niezbędne do zmiany użytkownika)
@@ -45,3 +46,45 @@
   handlers:
     - name: Restart Redis
       service: { name: redis-server, state: restarted }
+
+
+- name: Konfiguracja dostępu do PostgreSQL
+  hosts: db_servers
+  become: yes
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Zainstaluj wymagane paczki dla PostgreSQL Ansible
+      apt:
+        name:
+          - python3-psycopg2
+          - acl
+        state: present
+        update_cache: yes
+
+    - name: Utwórz użytkownika bazy danych db_admin
+      become_user: postgres
+      postgresql_user:
+        name: "{{ vault_db_user }}"
+        password: "{{ vault_db_password }}"
+        role_attr_flags: CREATEDB,LOGIN
+        state: present
+
+    - name: Utwórz bazę danych produkcja_db
+      become_user: postgres
+      postgresql_db:
+        name: "{{ vault_db_name }}"
+        owner: "{{ vault_db_user }}"
+        state: present
+
+    - name: Nadaj uprawnienia użytkownikowi db_admin do bazy
+      become_user: postgres
+      postgresql_privs:
+        db: "{{ vault_db_name }}"
+        role: "{{ vault_db_user }}"
+        objs: ALL_IN_SCHEMA
+        privs: ALL
+        type: table
+        state: present

@@ -1,34 +1,34 @@
 #240095
 #Grochowski Michal
 
-- name: Wdrożenie dynamicznej konfiguracji Nginx
-  hosts: app_servers   # Instalujemy na serwerach WWW/App, a nie na bazie!
+- name: Deploy dynamic Nginx configuration
+  hosts: app_servers   # We install on WWW/App servers, not on the database!
   become: yes
   
   tasks:
-    - name: Krok 1 - Instalacja serwera Nginx
+    - name: Step 1 - Install Nginx server
       apt:
         name: nginx
         state: present
         update_cache: yes
 
-    - name: Krok 2 - Renderowanie i kopiowanie szablonu konfiguracji
+    - name: Step 2 - Render and copy the configuration template
       template:
-        src: templates/my_app.conf.j2
+        src: templates/my_app_conf.j2
         dest: /etc/nginx/sites-available/my_app
         owner: root
         group: root
         mode: '0644'
       notify: Reload Nginx
 
-    - name: Krok 3 - Aktywacja konfiguracji (tworzenie linku symbolicznego)
+    - name: Step 3 - Activate configuration (create symbolic link)
       file:
         src: /etc/nginx/sites-available/my_app
         dest: /etc/nginx/sites-enabled/my_app
         state: link
       notify: Reload Nginx
 
-    - name: Krok 4 - Usunięcie domyślnej strony powitalnej Nginx
+    - name: Step 4 - Remove the default Nginx welcome page
       file:
         path: /etc/nginx/sites-enabled/default
         state: absent
@@ -38,5 +38,5 @@
     - name: Reload Nginx
       service:
         name: nginx
-        state: reloaded  # 'reloaded' jest lepsze niż 'restarted' - nie przerywa trwających połączeń!
+        state: reloaded  # 'reloaded' is better than 'restarted' - it doesn't interrupt ongoing connections!
         enabled: yes
